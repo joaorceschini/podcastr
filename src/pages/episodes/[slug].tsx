@@ -2,6 +2,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Image from "next/image";
 import Link from 'next/link'
+import { useRouter } from 'next/router';
 import { GetStaticPaths, GetStaticProps } from "next";
 
 import { api } from "../../services/api";
@@ -26,6 +27,9 @@ type EpisodeProps = {
 };
 
 export default function Episode({ episode }: EpisodeProps) {
+
+  const router = useRouter();
+
   return (
     <div className={styles.episode}>
       <div className={styles.thumbnailContainer}>
@@ -61,9 +65,26 @@ export default function Episode({ episode }: EpisodeProps) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+
+  const { data } = await api.get("episodes", {
+    params: {
+      _limit: 12,
+      _sort: "published_at",
+      _order: "desc",
+    },
+  });
+  
+  const paths = data.map(episode => {
+    return {
+      params: {
+        slug: episode.id
+      }
+    }
+  })
+
   return {
-    paths: [],
-    fallback: "blocking",
+    paths,
+    fallback: 'blocking',
   };
 };
 
